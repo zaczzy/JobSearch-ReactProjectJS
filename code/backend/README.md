@@ -1,1 +1,0 @@
-# Folder for backend routes, controllers and database management
