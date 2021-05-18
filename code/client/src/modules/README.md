@@ -1,1 +1,0 @@
-# Folder for Frontend React components, controllers

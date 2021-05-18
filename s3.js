@@ -18,7 +18,7 @@ router.post('/', upload.single('file'), async (req, res) => {
   const result = await uploadFile(file);
   // console.log(file);
   await unlinkFile(file.destination + file.filename); // should be file.path, but it didn't work 
-  res.send({imagePath: `/s3/${result.Key}`});
+  res.send({imagePath: `/api/s3/${result.Key}`});
 });
 
 router.post('/avatar', upload.single('image'), async (req, res) => {
@@ -26,6 +26,6 @@ router.post('/avatar', upload.single('image'), async (req, res) => {
   const result = await uploadFile(file);
   // console.log(file);
   await unlinkFile(file.destination + file.filename); // should be file.path, but it didn't work 
-  res.send({imagePath: `/s3/${result.Key}`});
+  res.send({imagePath: `/api/s3/${result.Key}`});
 });
 module.exports = router;

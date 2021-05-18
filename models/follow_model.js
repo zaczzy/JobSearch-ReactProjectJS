@@ -1,4 +1,3 @@
-const { mode } = require('crypto-js');
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 

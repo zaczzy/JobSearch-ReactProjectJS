@@ -8,8 +8,8 @@ const region = process.env.AWS_BUCKET_REGION;
 
 const s3 = new S3({
   region,
-  access_key,
-  secret_key
+  accessKeyId: access_key,
+  secretAccessKey: secret_key
 });
 
 function uploadFile(file) {
@@ -17,7 +17,7 @@ function uploadFile(file) {
 
   const uploadParams = {
     Bucket: bucketName,
-    Body: fileStream, 
+    Body: fileStream,
     Key: file.filename
   }
 
@@ -27,9 +27,9 @@ exports.uploadFile = uploadFile;
 
 function getFileStream(fileKey) {
   const downloadParams = {
-    Key: fileKey,
-    Bucket: bucketName
+    "Key": fileKey,
+    "Bucket": bucketName
   };
-  return s3.getObject(downloadParams).createReadStream(); 
+  return s3.getObject(downloadParams).createReadStream();
 }
 exports.getFileStream = getFileStream;

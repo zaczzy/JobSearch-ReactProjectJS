@@ -58,8 +58,8 @@ sgMail.send(msg);
 ); */
 
 var corsOptions = {
-  origin: 'http://localhost:3000',
-  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  origin: ['https://agileman-frontend.herokuapp.com', 'http://localhost:3000'],
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization'],
   optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
@@ -67,7 +67,11 @@ var corsOptions = {
 
 // perform actions on the collection object
 // put express setup stuff
+// hosting logic
+// app.use(express.static(path.join(__dirname, '../client/build')));
+
 app.use(cors(corsOptions));
+// app.use(cors())
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(cookieParser());
@@ -88,13 +92,13 @@ require("./passportConfig")(passport);
 
 
 // Put Express Routes
-app.get('/', function (req, res) {
+app.get('/api/', function (req, res) {
   // res.send('Hello World');
   // for testing -- TODO REMOVE
   res.cookie('currId', '605e8617983b646829c04929').send('cookie set');
 });
 
-app.post("/login", (req, res, next) => {
+app.post("/api/login", (req, res, next) => {
   if (!req.body.email) {
     return res.status(422).json({
       errors: {
@@ -162,7 +166,7 @@ app.post("/login", (req, res, next) => {
           // reset incorrect login information
           userObject.consecutive_incorrect_logins = 0;
           userObject.save();
-          res.cookie('currId', user._id.toString())
+          res.cookie('currId', user._id.toString(), { secure: true, sameSite: 'None' })
           res.send({message: "Successfully Authenticated", userObj: user})
           //console.log(req.user);
 
@@ -174,7 +178,7 @@ app.post("/login", (req, res, next) => {
   });
 });
 
-app.post('/signup', function (req, res, next) {
+app.post('/api/signup', function (req, res, next) {
   const { email, password, displayName, handle } = req.body;
   User.findOne({ "local.email": email }, (err, userMatch) => {
     if (userMatch) {
@@ -205,7 +209,7 @@ app.post('/signup', function (req, res, next) {
   })
 });
 
-app.post("/register", (req, res) => {
+app.post("/api/register", (req, res) => {
   User.findOne({$or: [{ handle: req.body.handle}, { email: req.body.email }]}, async (err, doc) => {
     if (err) throw err;
     if (doc) res.send("User Already Exists");
@@ -217,7 +221,7 @@ app.post("/register", (req, res) => {
         displayName: req.body.displayName,
         email: req.body.email,
         password: hashedPassword,
-        profilePic: "/stockImg.jpeg"
+        profilePic: "/api/s3/stockImg.jpeg"
       });
       await newUser.save();
       res.send("User Created");
@@ -225,13 +229,13 @@ app.post("/register", (req, res) => {
   });
 });
 
-app.get('/logout', function(req, res){
+app.get('/api/logout', function(req, res){
   req.logout();
   res.clearCookie('currId');
   res.json({message: "Successfully logged out"});
 });
 
-app.post("/deactivate", (req, res, next) => {
+app.post("/api/deactivate", (req, res, next) => {
   User.findOne({ email: req.body.email }, async (err, forgottenUser) => {
     if (err) throw err;
     if (forgottenUser) {
@@ -263,7 +267,7 @@ app.post("/deactivate", (req, res, next) => {
   });
 });
 
-app.post("/resetPassword", (req, res) => {
+app.post("/api/resetPassword", (req, res) => {
   const user = req.body.email;
   const newPassword = generator.generate({
       length: 10,
@@ -303,7 +307,7 @@ app.post("/resetPassword", (req, res) => {
   });
 });
 
-app.post("/changePassword", (req, res, next) => {
+app.post("/api/changePassword", (req, res, next) => {
   const user = req.body.email;
   const newPassword = req.body.newPassword
 
@@ -336,7 +340,7 @@ app.post("/changePassword", (req, res, next) => {
   });
 });
 
-app.get("/user", (req, res) => {
+app.get("/api/user", (req, res) => {
   res.send(req.user); // The req.user stores the entire user that has been authenticated inside of it.
 });
 
@@ -363,12 +367,17 @@ app.get("/user", (req, res) => {
 //   })
 // });
 
-app.use('/s3', s3Router);
-app.use('/post', postRouter);
-app.use('/comments', commentRouter);
-app.use('/user', userRouter);
-app.use('/chat', chatRouter);
-app.use('/stream', streamRouter);
+app.use('/api/s3', s3Router);
+app.use('/api/post', postRouter);
+app.use('/api/comments', commentRouter);
+app.use('/api/user', userRouter);
+app.use('/api/chat', chatRouter);
+app.use('/api/stream', streamRouter);
+
+// Root endpoint
+// app.get('*', (req, res) => {
+//   res.sendFile(path.join(__dirname, '../client/build/index.html'));
+// });
 
 // catch 404
 app.use((req, res, next) => {

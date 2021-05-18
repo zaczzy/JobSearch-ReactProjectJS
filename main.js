@@ -1,6 +1,6 @@
 const app = require('./server');
 const mongoose = require('mongoose');
-const appPort = 5000;
+const appPort = process.env.PORT || 5000;
 //const passport = require("passport");
 //const bcrypt = require("bcryptjs");
 // const socketPort = 7000;

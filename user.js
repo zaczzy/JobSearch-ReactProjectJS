@@ -63,7 +63,7 @@ router.get('/chat/:id', (req, res) => {
     .then(existsRes => {
       console.log('Chat exists', existsRes);
       if(existsRes.length > 0){
-        res.redirect(`/chat/${existsRes[0]._id.toHexString()}`)
+        res.redirect(`/api/chat/${existsRes[0]._id.toHexString()}`)
         return
       } else {
         console.log('Trying create chat', chat);
@@ -72,7 +72,7 @@ router.get('/chat/:id', (req, res) => {
                 console.log('Created new Chat: \n', result);
                 // TODO: fix API, boilerplate
                 const insertedId = result._id.toHexString();
-                res.redirect(`/chat/${insertedId}`);
+                res.redirect(`/api/chat/${insertedId}`);
             })
             .then(updatedDoc => {
                 console.log('UpdatedDoc', updatedDoc)
@@ -98,7 +98,7 @@ router.get('/call/:id', (req, res) => {
     Stream.insertOne(newStream)
         .then(result => {
             // TODO: fix API, boilerplate
-            res.redirect(`/stream/${result._id}`);
+            res.redirect(`/api/stream/${result._id}`);
         })
 });
 
@@ -126,20 +126,25 @@ router.post('/follow/:id', (req, res) => {
         user: currId,
         follows: otherId
     }
+    console.log('relationship', relationship)
     // check if I'm blocked by tgt
     User.find({_id: currId, blockedBy: {$in: [otherId]}})
       .then(blockRes => {
-        if(blockRes.len > 0) {
+        console.log('Block res,', blockRes)
+        if(blockRes.length > 0) {
           res.json({message: 'Sorry you cannot follow this user'})
+          console.log('Is Blocked')
+          return
         } else {
           // check if exists
           Follow.find(relationship)
             .then(findRes => {
+              console.log('FindRes is:', findRes)
               if(findRes.length === 0) {
                 Follow.create(relationship)
                     .then(result => res.send(result._id))
                     .catch(err => {
-                        console.error(`Failed to follow: ${err}`);
+                        console.log(`Failed to follow: ${err}`);
                         res.status(401).send('error');
                     });
               } else {
